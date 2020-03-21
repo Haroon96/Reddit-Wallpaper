@@ -116,7 +116,7 @@ def update_catalog():
                 # check if the image meets requirements and process accordingly
                 # if it doesn't, delete it
                 if not verify(img_path):
-                    shutil.rmtree(img_path)
+                    os.remove(img_path)
                     continue
                 
                 # add image to catalog and save
@@ -181,7 +181,8 @@ if __name__ == '__main__':
     
     if args.clear_catalog:
         shutil.rmtree(get_catalog_path(), ignore_errors=True)
-        shutil.rmtree('catalog.pickle', ignore_errors=True)
+        if os.path.exists('catalog.pickle'):
+            os.remove('catalog.pickle')
 
     if args.start:
         main()
