@@ -170,6 +170,10 @@ def main():
 
 
 if __name__ == '__main__':
+    # change working directory to this
+    os.chdir(os.path.dirname(__file__))
+
+    # load config
     global config
     config = json.load(open('config.json'))
 
