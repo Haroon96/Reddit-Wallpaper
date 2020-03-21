@@ -171,7 +171,8 @@ def main():
 
 if __name__ == '__main__':
     # change working directory to this
-    os.chdir(os.path.dirname(__file__))
+    if os.path.dirname(__file__) != '':
+        os.chdir(os.path.dirname(__file__))
 
     # load config
     global config
