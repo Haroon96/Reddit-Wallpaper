@@ -51,7 +51,7 @@ def downscale_image(path):
 
     # load a variant image with the required screen dimensions
     fn, ext = os.path.splitext(path)
-    variant = f'{fn}-{width}.{ext}'
+    variant = f'{fn}-{width}{ext}'
 
     # if the variant doensn't already exist, create it
     if not os.path.exists(variant):
@@ -96,15 +96,15 @@ def update_catalog():
                 
                 # check if img not already saved
                 _id = os.path.split(url)[1]
+                img_path = os.path.join(catalog_path, _id)
 
-                if _id in current_catalog:
+                if img_path in current_catalog:
                     continue
 
                 # download the image
                 r = requests.get(url, stream=True)
 
                 # save image to disk
-                img_path = os.path.join(catalog_path, _id)
                 with open(img_path, 'wb') as f:
                     f.write(r.raw.read())
 
