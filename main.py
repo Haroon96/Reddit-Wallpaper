@@ -2,6 +2,7 @@ import requests
 import platform
 import re
 import os
+import shutil
 import ctypes
 import json
 import subprocess
@@ -11,6 +12,7 @@ from threading import Thread
 from time import sleep
 from screeninfo import get_monitors
 from PIL import Image
+from argparse import ArgumentParser
 
 def set_wallpaper(path):
 
@@ -114,7 +116,7 @@ def update_catalog():
                 # check if the image meets requirements and process accordingly
                 # if it doesn't, delete it
                 if not verify(img_path):
-                    os.remove(img_path)
+                    shutil.rmtree(img_path)
                     continue
                 
                 # add image to catalog and save
@@ -127,7 +129,7 @@ def update_catalog():
 
 def main():
     global config
-    config = json.load(open('config.json'))
+
     Thread(target=update_catalog, daemon=True).start()
     
     used = set()
@@ -168,4 +170,18 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    global config
+    config = json.load(open('config.json'))
+
+    parser = ArgumentParser()
+    parser.add_argument('--clear-catalog', help="Clear the current catalog", action="store_true")
+    parser.add_argument('--start', help="Start the wallpaper app", action="store_true")
+
+    args = parser.parse_args()
+    
+    if args.clear_catalog:
+        shutil.rmtree(get_catalog_path(), ignore_errors=True)
+        shutil.rmtree('catalog.pickle', ignore_errors=True)
+
+    if args.start:
+        main()
