@@ -56,8 +56,11 @@ def downscale_image(path):
     # if the variant doensn't already exist, create it
     if not os.path.exists(variant):
         img = Image.open(path)
+        # find ratio between monitor width and image width
         ratio = width / img.width
-        img.resize((width, int(img.height * ratio)))
+        # resize image to new dimensions
+        img = img.resize((width, int(img.height * ratio)))
+        # save this variant
         img.save(variant)
 
     return variant
