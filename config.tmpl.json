@@ -1,0 +1,10 @@
+{
+    "catalog_path": "catalog",
+    "catalog_update_timeout": 1800,
+    "wallpaper_change_timeout": 600,
+    "downscale": false,
+    "number_of_top_posts": 10,
+    "subreddit_list": [
+        "EarthPorn"
+    ]
+}
