@@ -133,6 +133,9 @@ def main():
         # wait for timeout before setting new wallpaper
         sleep(config['wallpaper_change_timeout'])
 
+        # reload config
+        config = json.load(open('config.json'))
+
         print("Setting wallpaper...")
         # fetch catalog
         catalog = read_catalog()
