@@ -110,50 +110,57 @@ def update_catalog():
     while True:
         print("Updating catalog...")
         
-        subreddit_list = config['subreddit_list']
-        random.shuffle(subreddit_list)
+        posts = []
 
+        # fetch top posts from each subreddit
+        subreddit_list = config['subreddit_list']
         for subreddit in subreddit_list:
             # fetch the subreddit rss feed
             feed = f'https://reddit.com/r/{subreddit}.json'
             js = requests.get(feed, headers={'user-agent': 'reddit-wallpaper-haroon96'}).json()
+            
+            # save list of posts
+            posts.extend(js['data']['children'][:config['number_of_top_posts']])
 
-            # get the list of posts
-            posts = js['data']['children'][:config['number_of_top_posts']]
+        # shuffle posts for source mixing
+        random.shuffle(posts)
 
-            for post in posts:
-                # skip nsfw posts
-                if post['data']['over_18']:
-                    continue
+        # download image from each post
+        for post in posts:
+            # skip nsfw posts
+            if post['data']['over_18']:
+                continue
 
-                # extract post image url
-                url = post['data']['url']
-                
-                # check if img not already saved
-                _id = os.path.split(url)[1]
-                img_path = os.path.join(catalog_path, _id)
+            # extract post image url
+            url = post['data']['url']
+            
+            # check if img not already saved
+            _id = os.path.split(url)[1]
+            img_path = os.path.join(catalog_path, _id)
 
-                if img_path in current_catalog:
-                    continue
+            # if image already downloaded, skip
+            if img_path in current_catalog:
+                continue
 
-                if os.path.splitext(img_path)[1] not in ['.jpg', '.png']:
-                    continue
+            # invalid format
+            if os.path.splitext(img_path)[1] not in ['.jpg', '.png', '.bmp']:
+                continue
 
-                # download the image
-                r = requests.get(url, stream=True)
+            # download the image
+            r = requests.get(url, stream=True)
 
-                # save image to disk
-                with open(img_path, 'wb') as f:
-                    f.write(r.raw.read())
+            # save image to disk
+            with open(img_path, 'wb') as f:
+                f.write(r.raw.read())
 
-                # check if the image meets requirements and process accordingly
-                # if it doesn't, delete it
-                if not verify(img_path):
-                    os.remove(img_path)
-                    continue
-                
-                # add image to catalog and save
-                current_catalog.append(img_path)
+            # check if the image meets requirements and process accordingly
+            # if it doesn't, delete it
+            if not verify(img_path):
+                os.remove(img_path)
+                continue
+            
+            # add image to catalog and save
+            current_catalog.append(img_path)
 
         # sleep for specified interval
         print("Catalog updated!")
@@ -165,8 +172,6 @@ def main():
     used = set()
 
     while True:
-        # wait for timeout before setting new wallpaper
-        sleep(config['wallpaper_change_interval'])
 
         # reload config
         load_config()
@@ -179,6 +184,7 @@ def main():
         # if no wallpapers exist, wait
         if len(catalog) == 0:
             print("Waiting for catalog update...")
+            sleep(config['wallpaper_change_interval'])
             continue
             
         # select wallpapers that haven't been used recently
@@ -199,6 +205,8 @@ def main():
         set_wallpaper(choice)
         print("Wallpaper set!")
 
+        # wait for timeout before setting new wallpaper
+        sleep(config['wallpaper_change_interval'])
 
 
 if __name__ == '__main__':
