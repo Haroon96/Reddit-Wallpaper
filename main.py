@@ -14,6 +14,14 @@ from screeninfo import get_monitors
 from PIL import Image
 from argparse import ArgumentParser
 
+def load_config():
+    global config
+    cfg = 'config.json'
+    # use template if config doesn't exist
+    if not os.path.exists(cfg):
+        cfg = 'config.tmpl.json'
+    config = json.load(open(cfg))
+
 def set_wallpaper(path):
 
     # high-res images look blurred on GNOME, downscale to monitor resolution
@@ -88,8 +96,11 @@ def update_catalog():
 
     while True:
         print("Updating catalog...")
+        
+        subreddit_list = config['subreddit_list']
+        random.shuffle(subreddit_list)
 
-        for subreddit in config['subreddit_list']:
+        for subreddit in subreddit_list:
             # fetch the subreddit rss feed
             feed = f'https://reddit.com/r/{subreddit}.json'
             js = requests.get(feed, headers={'user-agent': 'reddit-wallpaper-haroon96'}).json()
@@ -132,8 +143,6 @@ def update_catalog():
         sleep(config['catalog_update_interval'])
 
 def main():
-    global config
-
     Thread(target=update_catalog, daemon=True).start()
     
     used = set()
@@ -143,7 +152,7 @@ def main():
         sleep(config['wallpaper_change_interval'])
 
         # reload config
-        config = json.load(open('config.json'))
+        load_config()
 
         print("Setting wallpaper...")
         # fetch catalog
@@ -179,8 +188,7 @@ if __name__ == '__main__':
         os.chdir(os.path.dirname(__file__))
 
     # load config
-    global config
-    config = json.load(open('config.json'))
+    load_config()
 
     parser = ArgumentParser()
     parser.add_argument('--start', help="Start the wallpaper app", action="store_true")
