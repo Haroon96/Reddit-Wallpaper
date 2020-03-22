@@ -43,7 +43,7 @@ def get_catalog_path():
 
     if not os.path.isabs(catalog_path):
         catalog_path = os.path.join(os.getcwd(), catalog_path)
-    
+
     # create catalog path if it doesnt exist
     if not os.path.exists(catalog_path):
         os.makedirs(catalog_path)
@@ -53,7 +53,7 @@ def get_catalog_path():
 def read_catalog():
     cp = get_catalog_path()
     return [img for img in map(lambda x : os.path.join(cp, x), os.listdir(get_catalog_path())) if is_image(img)]
-    
+
 def is_image(img_path):
     try:
         Image.open(img_path)
@@ -74,7 +74,7 @@ def downscale_image(img_path):
     if not os.path.exists(variant):
         if not os.path.exists(new_path):
             os.makedirs(new_path)
-        
+
         img = Image.open(img_path)
         # find ratio between monitor width and image width
         ratio = width / img.width
@@ -92,10 +92,10 @@ def verify(path):
     # must be higher resolution
     if img.width < monitor.width or img.height < monitor.height:
         return False
-        
+
     # if image is portrait, skip
-    if img.width < img.height:
-        return False
+    #if img.width < img.height:
+    #    return False
 
     img.save(path)
     return True
