@@ -51,22 +51,31 @@ def get_catalog_path():
     return catalog_path
 
 def read_catalog():
-    if os.path.exists('catalog.pickle'):
-        # read catalog and check if entries still exist
-        return [i for i in pickle.load(open('catalog.pickle', 'rb')) if os.path.exists(i)]
-    return []
+    cp = get_catalog_path()
+    return [img for img in map(lambda x : os.path.join(cp, x), os.listdir(get_catalog_path())) if is_image(img)]
+    
+def is_image(img_path):
+    try:
+        Image.open(img_path)
+        return True
+    except IOError:
+        return False
 
-def downscale_image(path):
+def downscale_image(img_path):
     # get the monitor width
     width = get_monitors()[0].width
 
     # load a variant image with the required screen dimensions
-    fn, ext = os.path.splitext(path)
-    variant = f'{fn}-{width}{ext}'
+    new_path, fname = os.path.split(img_path)
+    new_path = os.path.join(new_path, str(width))
+    variant = os.path.join(new_path, fname)
 
     # if the variant doensn't already exist, create it
     if not os.path.exists(variant):
-        img = Image.open(path)
+        if not os.path.exists(new_path):
+            os.makedirs(new_path)
+        
+        img = Image.open(img_path)
         # find ratio between monitor width and image width
         ratio = width / img.width
         # resize image to new dimensions
@@ -80,8 +89,12 @@ def verify(path):
     img = Image.open(path)
     monitor = get_monitors()[0]
 
-    # must be better resolution
+    # must be higher resolution
     if img.width < monitor.width or img.height < monitor.height:
+        return False
+        
+    # if image is portrait, skip
+    if img.width < img.height:
         return False
 
     img.save(path)
@@ -109,6 +122,11 @@ def update_catalog():
             posts = js['data']['children'][:config['number_of_top_posts']]
 
             for post in posts:
+                # skip nsfw posts
+                if post['data']['over_18']:
+                    continue
+
+                # extract post image url
                 url = post['data']['url']
                 
                 # check if img not already saved
@@ -136,9 +154,8 @@ def update_catalog():
                 
                 # add image to catalog and save
                 current_catalog.append(img_path)
-                pickle.dump(current_catalog, open('catalog.pickle', 'wb'))
 
-            
+        # sleep for specified interval
         print("Catalog updated!")
         sleep(config['catalog_update_interval'])
 
@@ -155,26 +172,28 @@ def main():
         load_config()
 
         print("Setting wallpaper...")
-        # fetch catalog
+        
+        # read catalog
         catalog = read_catalog()
 
-        # check if catalog exists
+        # if no wallpapers exist, wait
         if len(catalog) == 0:
             print("Waiting for catalog update...")
             continue
-
-        # pick a random wallpaper
-        choice = random.choice(catalog)
-
-        # prevent reselections
-        while choice in used or not os.path.exists(choice):
-            choice = random.choice(catalog)
-
-        used.add(choice)
-
-        # prevent over-consumption
-        if len(used) == len(catalog):
+            
+        # select wallpapers that haven't been used recently
+        options = [img for img in catalog if img not in used]
+        
+        # if all wallpapers consumed, recycle
+        if len(options) == 0:
+            options = catalog
             used = set()
+
+        # select a random wallpaper
+        choice = random.choice(options)
+
+        # mark wallpaper as used
+        used.add(choice)
         
         # set as wallpaper
         set_wallpaper(choice)
@@ -201,8 +220,6 @@ if __name__ == '__main__':
     if args.clear_catalog:
         no_arg = False
         shutil.rmtree(get_catalog_path(), ignore_errors=True)
-        if os.path.exists('catalog.pickle'):
-            os.remove('catalog.pickle')
 
     if args.start:
         no_arg = False
