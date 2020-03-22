@@ -44,7 +44,8 @@ def get_catalog_path():
 
 def read_catalog():
     if os.path.exists('catalog.pickle'):
-        return pickle.load(open('catalog.pickle', 'rb'))
+        # read catalog and check if entries still exist
+        return [i for i in pickle.load(open('catalog.pickle', 'rb')) if os.path.exists(i)]
     return []
 
 def downscale_image(path):
@@ -104,6 +105,9 @@ def update_catalog():
                 img_path = os.path.join(catalog_path, _id)
 
                 if img_path in current_catalog:
+                    continue
+
+                if os.path.splitext(img_path)[1] not in ['.jpg', '.png']:
                     continue
 
                 # download the image
