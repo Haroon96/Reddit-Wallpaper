@@ -125,7 +125,7 @@ def update_catalog():
 
             
         print("Catalog updated!")
-        sleep(config['catalog_update_timeout'])
+        sleep(config['catalog_update_interval'])
 
 def main():
     global config
@@ -136,7 +136,7 @@ def main():
 
     while True:
         # wait for timeout before setting new wallpaper
-        sleep(config['wallpaper_change_timeout'])
+        sleep(config['wallpaper_change_interval'])
 
         # reload config
         config = json.load(open('config.json'))
@@ -160,7 +160,7 @@ def main():
         used.add(choice)
 
         # prevent over-consumption
-        if len(used) == len(used):
+        if len(used) == len(catalog):
             used = set()
         
         # set as wallpaper
@@ -179,15 +179,22 @@ if __name__ == '__main__':
     config = json.load(open('config.json'))
 
     parser = ArgumentParser()
-    parser.add_argument('--clear-catalog', help="Clear the current catalog", action="store_true")
     parser.add_argument('--start', help="Start the wallpaper app", action="store_true")
+    parser.add_argument('--clear-catalog', help="Clear the current catalog", action="store_true")
 
     args = parser.parse_args()
+      
+    no_arg = True
     
     if args.clear_catalog:
+        no_arg = False
         shutil.rmtree(get_catalog_path(), ignore_errors=True)
         if os.path.exists('catalog.pickle'):
             os.remove('catalog.pickle')
 
     if args.start:
+        no_arg = False
         main()
+        
+    if no_arg:
+        parser.print_help()
