@@ -94,8 +94,8 @@ def verify(path):
         return False
 
     # if image is portrait, skip
-    #if img.width < img.height:
-    #    return False
+    if img.width < img.height:
+        return False
 
     img.save(path)
     return True
@@ -162,6 +162,9 @@ def update_catalog():
             # add image to catalog and save
             current_catalog.append(img_path)
 
+
+        del js, posts
+
         # sleep for specified interval
         print("Catalog updated!")
         sleep(config['catalog_update_interval'])
@@ -170,6 +173,9 @@ def main():
     Thread(target=update_catalog, daemon=True).start()
     
     used = set()
+    
+    # initial sleep to prevent change straight on boot
+    sleep(random.randint(10, 20))
 
     while True:
 
@@ -205,6 +211,7 @@ def main():
         set_wallpaper(choice)
         print("Wallpaper set!")
 
+        del catalog, options
         # wait for timeout before setting new wallpaper
         sleep(config['wallpaper_change_interval'])
 
