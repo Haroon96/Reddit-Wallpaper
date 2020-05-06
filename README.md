@@ -3,7 +3,7 @@
 An application for routinely downloading and setting system wallpapers from specified subreddits.
 
 ## Features
-- Supports Windows and GNOME on Linux
+- Supports both Windows and GNOME
 - Auto-downloads wallpapers from specified subreddits
 
 ## Installation
