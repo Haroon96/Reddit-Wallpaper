@@ -116,19 +116,17 @@ def update_catalog():
         # fetch top posts from each subreddit
         subreddit_list = config['subreddit_list']
         for subreddit in subreddit_list:
-            # fetch the subreddit rss feed
-            feed = f'https://reddit.com/r/{subreddit}.json'
             try:
+                # fetch the subreddit rss feed
+                feed = f'https://reddit.com/r/{subreddit}.json'
                 js = requests.get(feed, headers={'user-agent': 'reddit-wallpaper-haroon96'}).json()
+                # save list of posts
+                posts.extend(js['data']['children'][:config['number_of_top_posts']])
+
+                del js
             except Exception as e:
                 sys.stderr.write(str(e) + '\n')
-                break
             
-            # save list of posts
-            posts.extend(js['data']['children'][:config['number_of_top_posts']])
-
-            del js
-
         # shuffle posts for source mixing
         random.shuffle(posts)
 
