@@ -13,6 +13,7 @@ from time import sleep
 from screeninfo import get_monitors
 from PIL import Image
 from argparse import ArgumentParser
+import sys
 
 def load_config():
     global config
@@ -117,10 +118,16 @@ def update_catalog():
         for subreddit in subreddit_list:
             # fetch the subreddit rss feed
             feed = f'https://reddit.com/r/{subreddit}.json'
-            js = requests.get(feed, headers={'user-agent': 'reddit-wallpaper-haroon96'}).json()
+            try:
+                js = requests.get(feed, headers={'user-agent': 'reddit-wallpaper-haroon96'}).json()
+            except Exception as e:
+                sys.stderr.write(str(e) + '\n')
+                break
             
             # save list of posts
             posts.extend(js['data']['children'][:config['number_of_top_posts']])
+
+            del js
 
         # shuffle posts for source mixing
         random.shuffle(posts)
@@ -163,7 +170,7 @@ def update_catalog():
             current_catalog.append(img_path)
 
 
-        del js, posts
+        del posts
 
         # sleep for specified interval
         print("Catalog updated!")
